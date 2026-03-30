@@ -1,137 +1,196 @@
-// 用户相关类型
 export interface User {
   id: number;
-  phone: string;
-  email: string;
+  uuid: string;
+  phone?: string;
+  email?: string;
   nickname: string;
-  avatarUrl: string;
-  membershipLevel: number;
-  preferences: UserPreferences;
-  createdAt: string;
+  avatar_url?: string;
+  gender: number;
+  birthday?: string;
+  membership_level: number;
+  points: number;
+  preferences: Record<string, any>;
+  travel_style?: string;
+  status: number;
+  created_at: string;
+  updated_at: string;
 }
 
-export interface UserPreferences {
-  destinationTypes: string[];
-  budgetRange: 'budget' | 'mid-range' | 'luxury';
-  travelStyle: string;
-  dietaryRestrictions: string[];
+export interface Destination {
+  id: number;
+  name: string;
+  name_en?: string;
+  country: string;
+  province?: string;
+  description: string;
+  cover_image?: string;
+  images: string[];
+  best_season?: string;
+  avg_cost?: number;
+  rating: number;
+  review_count: number;
+  tags: string[];
+  climate_info: Record<string, any>;
+  traffic_info: Record<string, any>;
 }
 
-// 产品相关类型
-export type ProductType = 'flight' | 'hotel' | 'ticket' | 'experience';
+export interface POI {
+  id: number;
+  destination_id: number;
+  name: string;
+  type: string;
+  subtype?: string;
+  description: string;
+  cover_image?: string;
+  images: string[];
+  address?: string;
+  phone?: string;
+  opening_hours: Record<string, any>;
+  avg_cost?: number;
+  rating: number;
+  review_count: number;
+  ticket_price?: number;
+  tags: string[];
+}
 
 export interface Product {
   id: number;
-  type: ProductType;
+  type: 'flight' | 'hotel' | 'ticket' | 'experience';
   name: string;
   description: string;
-  price: number;
+  cover_image?: string;
+  images: string[];
+  destination_id?: number;
+  base_price: number;
+  sale_price?: number;
   inventory: number;
+  sold_count: number;
+  rating: number;
+  review_count: number;
   tags: string[];
   metadata: Record<string, any>;
   status: number;
-  rating?: number;
-  reviewCount?: number;
-  images?: string[];
-  location?: GeoLocation;
 }
 
-export interface GeoLocation {
-  latitude: number;
-  longitude: number;
-  address: string;
-  city: string;
-  country: string;
-}
-
-// 行程相关类型
 export interface Itinerary {
   id: number;
-  userId: number;
+  user_id: number;
   title: string;
-  startDate: string;
-  endDate: string;
-  days: ItineraryDay[];
-  budget: number;
+  destination_id?: number;
+  start_date: string;
+  end_date: string;
+  days: number;
+  days_detail: DayPlan[];
+  budget?: number;
+  actual_cost?: number;
+  travelers: number;
   tags: string[];
-  isPublic: boolean;
-  createdAt: string;
+  is_ai_generated: boolean;
+  is_public: boolean;
+  like_count: number;
+  view_count: number;
 }
 
-export interface ItineraryDay {
+export interface DayPlan {
   day: number;
   date: string;
+  theme: string;
   activities: Activity[];
-  notes?: string;
+  meals: {
+    breakfast?: string;
+    lunch?: string;
+    dinner?: string;
+  };
+  daily_budget: number;
 }
 
 export interface Activity {
-  id: string;
   time: string;
-  title: string;
-  description: string;
-  location: GeoLocation;
-  duration: number; // 分钟
+  activity: string;
+  location: string;
+  duration: string;
   cost: number;
-  type: 'attraction' | 'restaurant' | 'transport' | 'hotel' | 'activity';
-  bookingRequired: boolean;
-  productId?: number;
+  tips?: string;
+  type: 'scenic' | 'meal' | 'transport' | 'accommodation' | 'shopping';
 }
-
-// 订单相关类型
-export type OrderStatus = 'pending' | 'paid' | 'cancelled' | 'completed' | 'refunded';
 
 export interface Order {
   id: number;
-  userId: number;
-  orderNo: string;
-  product: Product;
+  order_no: string;
+  user_id: number;
+  product_id: number;
+  product_type: string;
+  product_name: string;
+  product_snapshot: any;
   quantity: number;
-  totalAmount: number;
-  status: OrderStatus;
-  paymentTime?: string;
-  createdAt: string;
+  unit_price: number;
+  total_amount: number;
+  discount_amount: number;
+  pay_amount: number;
+  contact_name?: string;
+  contact_phone?: string;
+  use_date?: string;
+  remark?: string;
+  status: number;
+  payment_method?: string;
+  payment_time?: string;
+  created_at: string;
+  updated_at: string;
 }
 
-// AI相关类型
-export interface ChatMessage {
-  id: string;
-  role: 'user' | 'assistant' | 'system';
+export interface TravelGuide {
+  id: number;
+  author_id: number;
+  destination_id?: number;
+  title: string;
   content: string;
-  timestamp: string;
-  intent?: string;
-  suggestions?: string[];
+  cover_image?: string;
+  images: string[];
+  tags: string[];
+  view_count: number;
+  like_count: number;
+  bookmark_count: number;
+  comment_count: number;
+  is_featured: boolean;
+  is_ai_generated: boolean;
+  status: number;
+  created_at: string;
+}
+
+export interface Review {
+  id: number;
+  user_id: number;
+  target_type: string;
+  target_id: number;
+  rating: number;
+  content: string;
+  images: string[];
+  like_count: number;
+  created_at: string;
 }
 
 export interface AIConversation {
-  sessionId: string;
-  messages: ChatMessage[];
-  context?: Record<string, any>;
+  id: number;
+  user_id?: number;
+  session_id: string;
+  role: 'user' | 'assistant' | 'system';
+  content: string;
+  intent?: string;
+  tools_used: string[];
+  token_count: number;
+  created_at: string;
 }
 
-// 搜索与推荐
-export interface SearchParams {
-  keyword: string;
-  destination?: string;
-  dateRange?: [string, string];
-  priceRange?: [number, number];
-  tags?: string[];
-  sortBy?: 'price' | 'rating' | 'popularity';
-  page?: number;
-  pageSize?: number;
-}
-
-export interface SearchResult<T> {
-  items: T[];
-  total: number;
-  page: number;
-  pageSize: number;
-}
-
-// API响应
-export interface ApiResponse<T = any> {
+export interface ApiResponse<T> {
   code: number;
   message: string;
   data: T;
-  timestamp: number;
+}
+
+export interface PaginatedResponse<T> {
+  items: T[];
+  total: number;
+  page: number;
+  size: number;
+  pages: number;
 }

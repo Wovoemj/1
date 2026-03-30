@@ -1,9 +1,10 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  reactStrictMode: true,
+  output: 'standalone',
   images: {
-    domains: ['localhost', 'travel-assets.example.com'],
-    formats: ['image/avif', 'image/webp'],
+    remotePatterns: [
+      { protocol: 'https', hostname: '**' },
+    ],
   },
   async rewrites() {
     return [

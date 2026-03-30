@@ -1,113 +1,163 @@
 'use client';
 
-import { useState } from 'react';
-import { motion } from 'framer-motion';
-import { User, Heart, MapPin, Settings, LogOut, ChevronRight, Package, Star, Calendar, Award } from 'lucide-react';
-import { useAuthStore } from '@/lib/store';
-
-const menuItems = [
-  { icon: Package, label: '我的订单', desc: '查看所有预订记录', href: '/user/orders' },
-  { icon: Heart, label: '我的收藏', desc: '收藏的景点和攻略', href: '/user/favorites' },
-  { icon: MapPin, label: '旅行足迹', desc: '查看你的旅行地图', href: '/user/footprints' },
-  { icon: Star, label: '我的评价', desc: '查看和管理评价', href: '/user/reviews' },
-  { icon: Calendar, label: '我的行程', desc: '已保存的行程方案', href: '/user/itineraries' },
-  { icon: Settings, label: '账号设置', desc: '修改个人信息', href: '/user/settings' },
-];
-
-const mockOrders = [
-  { orderNo: 'TR20240301001', product: '三亚亚龙湾万豪度假酒店', status: '已完成', amount: 1288, date: '2024-03-01' },
-  { orderNo: 'TR20240215002', product: '上海-三亚往返机票', status: '已使用', amount: 1560, date: '2024-02-15' },
-  { orderNo: 'TR20240210003', product: '蜈支洲岛门票', status: '已退款', amount: 136, date: '2024-02-10' },
-];
+import React, { useState } from 'react';
 
 export default function UserPage() {
-  const { user, isAuthenticated } = useAuthStore();
-  const [activeTab, setActiveTab] = useState<'profile' | 'orders' | 'settings'>('profile');
+  const [activeTab, setActiveTab] = useState('orders');
 
-  const statusColors: Record<string, string> = {
-    '已完成': 'bg-green-100 text-green-700',
-    '已使用': 'bg-gray-100 text-gray-600',
-    '已退款': 'bg-red-100 text-red-700',
-    '待支付': 'bg-orange-100 text-orange-700',
+  const user = {
+    name: '旅行达人',
+    avatar: '',
+    level: '金卡会员',
+    points: 2580,
+    orders: 12,
+    favorites: 45,
   };
 
+  const orders = [
+    { id: 'ORD202401001', product: '三亚亚龙湾万豪度假酒店', date: '2024-01-15', amount: 3840, status: '已完成' },
+    { id: 'ORD202401002', product: '上海-三亚往返机票', date: '2024-01-20', amount: 2100, status: '已支付' },
+    { id: 'ORD202401003', product: '蜈支洲岛门票+潜水套餐', date: '2024-01-22', amount: 580, status: '待支付' },
+  ];
+
   return (
-    <div className="max-w-4xl mx-auto px-4 py-8">
-      {/* Profile Header */}
-      <div className="bg-gradient-to-r from-blue-500 to-purple-600 rounded-2xl p-8 mb-8 text-white">
-        <div className="flex items-center gap-6">
-          <div className="w-20 h-20 bg-white/20 rounded-2xl flex items-center justify-center backdrop-blur-sm">
-            <User className="w-10 h-10" />
+    <div className="min-h-screen bg-gray-50">
+      <nav className="bg-white shadow-sm sticky top-0 z-40">
+        <div className="max-w-7xl mx-auto px-4 py-3 flex items-center justify-between">
+          <a href="/" className="flex items-center gap-2">
+            <span className="text-2xl">🌍</span>
+            <span className="text-xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">TravelAI</span>
+          </a>
+          <div className="flex items-center gap-4">
+            <a href="/" className="text-gray-600 hover:text-blue-500">首页</a>
+            <a href="/planner" className="text-gray-600 hover:text-blue-500">行程规划</a>
+            <a href="/guide" className="text-gray-600 hover:text-blue-500">攻略</a>
+            <a href="/booking" className="text-gray-600 hover:text-blue-500">预订</a>
+          </div>
+        </div>
+      </nav>
+
+      {/* 用户信息 */}
+      <div className="bg-gradient-to-r from-purple-500 to-pink-500 py-10">
+        <div className="max-w-4xl mx-auto px-4 flex items-center gap-6">
+          <div className="w-20 h-20 bg-white rounded-full flex items-center justify-center text-4xl">👤</div>
+          <div className="text-white">
+            <h1 className="text-2xl font-bold">{user.name}</h1>
+            <p className="opacity-90">{user.level} · {user.points} 积分</p>
+          </div>
+        </div>
+      </div>
+
+      {/* 统计 */}
+      <div className="max-w-4xl mx-auto px-4 -mt-6">
+        <div className="bg-white rounded-2xl shadow-lg p-6 grid grid-cols-4 gap-4 text-center">
+          <div>
+            <div className="text-2xl font-bold text-blue-600">{user.orders}</div>
+            <div className="text-sm text-gray-500">全部订单</div>
           </div>
           <div>
-            <h1 className="text-2xl font-bold">{user?.nickname || '旅行者'}</h1>
-            <p className="text-white/80 mt-1">{user?.phone || '138****8888'}</p>
-            <div className="flex items-center gap-3 mt-3">
-              <span className="px-3 py-1 bg-white/20 rounded-full text-sm flex items-center gap-1">
-                <Award className="w-4 h-4" />
-                黄金会员
-              </span>
-              <span className="text-sm text-white/70">积分: 2,680</span>
-            </div>
+            <div className="text-2xl font-bold text-orange-500">2</div>
+            <div className="text-sm text-gray-500">待支付</div>
+          </div>
+          <div>
+            <div className="text-2xl font-bold text-green-500">1</div>
+            <div className="text-sm text-gray-500">待出行</div>
+          </div>
+          <div>
+            <div className="text-2xl font-bold text-purple-500">{user.favorites}</div>
+            <div className="text-sm text-gray-500">收藏</div>
           </div>
         </div>
+      </div>
 
-        {/* Stats */}
-        <div className="grid grid-cols-4 gap-4 mt-8">
+      {/* 内容区 */}
+      <div className="max-w-4xl mx-auto px-4 py-8">
+        {/* Tab */}
+        <div className="flex gap-4 mb-6 border-b">
           {[
-            { label: '全部订单', value: 12 },
-            { label: '待支付', value: 1 },
-            { label: '待评价', value: 3 },
-            { label: '收藏', value: 28 },
-          ].map((stat) => (
-            <div key={stat.label} className="text-center">
-              <div className="text-2xl font-bold">{stat.value}</div>
-              <div className="text-sm text-white/70">{stat.label}</div>
-            </div>
+            { key: 'orders', label: '我的订单' },
+            { key: 'itineraries', label: '我的行程' },
+            { key: 'favorites', label: '我的收藏' },
+            { key: 'settings', label: '账号设置' },
+          ].map(tab => (
+            <button
+              key={tab.key}
+              onClick={() => setActiveTab(tab.key)}
+              className={`pb-3 px-2 transition ${
+                activeTab === tab.key ? 'text-blue-600 border-b-2 border-blue-600 font-bold' : 'text-gray-500 hover:text-gray-700'
+              }`}
+            >
+              {tab.label}
+            </button>
           ))}
         </div>
-      </div>
 
-      {/* Menu Items */}
-      <div className="bg-white rounded-2xl shadow-sm border border-gray-100 mb-8">
-        {menuItems.map((item, idx) => (
-          <button
-            key={item.label}
-            className="w-full flex items-center gap-4 px-6 py-4 hover:bg-gray-50 transition-colors group"
-          >
-            <div className="w-10 h-10 bg-blue-50 rounded-xl flex items-center justify-center group-hover:bg-blue-100 transition-colors">
-              <item.icon className="w-5 h-5 text-blue-500" />
-            </div>
-            <div className="flex-1 text-left">
-              <div className="font-medium text-gray-900">{item.label}</div>
-              <div className="text-sm text-gray-400">{item.desc}</div>
-            </div>
-            <ChevronRight className="w-5 h-5 text-gray-300 group-hover:text-gray-400 transition-colors" />
-          </button>
-        ))}
-      </div>
-
-      {/* Recent Orders */}
-      <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
-        <h2 className="text-lg font-semibold text-gray-900 mb-4">最近订单</h2>
-        <div className="space-y-4">
-          {mockOrders.map((order) => (
-            <div key={order.orderNo} className="flex items-center justify-between py-3 border-b border-gray-50 last:border-0">
-              <div>
-                <div className="font-medium text-gray-900">{order.product}</div>
-                <div className="text-sm text-gray-400 mt-1">
-                  {order.orderNo} · {order.date}
+        {activeTab === 'orders' && (
+          <div className="space-y-4">
+            {orders.map(order => (
+              <div key={order.id} className="bg-white rounded-xl p-4 shadow-sm">
+                <div className="flex justify-between items-start">
+                  <div>
+                    <div className="text-sm text-gray-400">{order.id}</div>
+                    <div className="font-bold mt-1">{order.product}</div>
+                    <div className="text-sm text-gray-500 mt-1">📅 {order.date}</div>
+                  </div>
+                  <div className="text-right">
+                    <div className={`text-sm px-3 py-1 rounded-full ${
+                      order.status === '已完成' ? 'bg-green-100 text-green-600' :
+                      order.status === '已支付' ? 'bg-blue-100 text-blue-600' :
+                      'bg-orange-100 text-orange-600'
+                    }`}>
+                      {order.status}
+                    </div>
+                    <div className="font-bold text-lg mt-2">¥{order.amount}</div>
+                  </div>
                 </div>
               </div>
-              <div className="text-right">
-                <span className={`inline-block px-2 py-0.5 rounded-full text-xs font-medium ${statusColors[order.status]}`}>
-                  {order.status}
-                </span>
-                <div className="text-lg font-bold text-gray-900 mt-1">¥{order.amount}</div>
+            ))}
+          </div>
+        )}
+
+        {activeTab === 'itineraries' && (
+          <div className="text-center py-12 text-gray-400">
+            <div className="text-5xl mb-4">🗺️</div>
+            <p>还没有行程记录</p>
+            <a href="/planner" className="inline-block mt-4 px-6 py-2 bg-blue-500 text-white rounded-full hover:bg-blue-600 transition">
+              去创建行程 →
+            </a>
+          </div>
+        )}
+
+        {activeTab === 'favorites' && (
+          <div className="text-center py-12 text-gray-400">
+            <div className="text-5xl mb-4">❤️</div>
+            <p>还没有收藏内容</p>
+          </div>
+        )}
+
+        {activeTab === 'settings' && (
+          <div className="bg-white rounded-xl p-6 space-y-4">
+            <h3 className="font-bold text-lg">账号设置</h3>
+            <div className="space-y-3">
+              <div className="flex justify-between items-center py-3 border-b">
+                <span>昵称</span>
+                <span className="text-gray-500">{user.name}</span>
+              </div>
+              <div className="flex justify-between items-center py-3 border-b">
+                <span>手机号</span>
+                <span className="text-gray-500">138****8888</span>
+              </div>
+              <div className="flex justify-between items-center py-3 border-b">
+                <span>邮箱</span>
+                <span className="text-gray-500">未绑定</span>
+              </div>
+              <div className="flex justify-between items-center py-3 border-b">
+                <span>旅行偏好</span>
+                <span className="text-gray-500">海边、美食</span>
               </div>
             </div>
-          ))}
-        </div>
+          </div>
+        )}
       </div>
     </div>
   );
