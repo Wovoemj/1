@@ -1,0 +1,18 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: travel-ai-config
+  namespace: travel-ai
+data:
+  DB_HOST: "postgres.travel-ai.svc.cluster.local"
+  DB_PORT: "5432"
+  DB_NAME: "travel_ai"
+  REDIS_HOST: "redis.travel-ai.svc.cluster.local"
+  REDIS_PORT: "6379"
+  ES_HOST: "elasticsearch.travel-ai.svc.cluster.local"
+  ES_PORT: "9200"
+  MILVUS_HOST: "milvus.travel-ai.svc.cluster.local"
+  MILVUS_PORT: "19530"
+  EUREKA_HOST: "eureka.travel-ai.svc.cluster.local"
+  EUREKA_PORT: "8761"
+  ROCKETMQ_HOST: "rocketmq.travel-ai.svc.cluster.local"

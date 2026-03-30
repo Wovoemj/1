@@ -1,0 +1,248 @@
+version: '3.8'
+
+services:
+  # ==================== 前端服务 ====================
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    ports:
+      - "3000:3000"
+    environment:
+      - NEXT_PUBLIC_API_URL=http://localhost:8080
+      - NEXT_PUBLIC_AI_URL=http://localhost:8000
+    depends_on:
+      - gateway
+    restart: unless-stopped
+
+  admin:
+    build:
+      context: ./admin
+      dockerfile: Dockerfile
+    ports:
+      - "3001:3000"
+    environment:
+      - REACT_APP_API_URL=http://localhost:8080
+    depends_on:
+      - gateway
+    restart: unless-stopped
+
+  # ==================== 网关服务 ====================
+  gateway:
+    build:
+      context: ./backend/gateway-service
+      dockerfile: Dockerfile
+    ports:
+      - "8080:8080"
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
+      - REDIS_HOST=redis
+      - EUREKA_HOST=eureka
+    depends_on:
+      - redis
+      - eureka
+    restart: unless-stopped
+
+  # ==================== 业务服务 ====================
+  user-service:
+    build:
+      context: ./backend/user-service
+      dockerfile: Dockerfile
+    ports:
+      - "8081:8081"
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
+      - DB_HOST=postgres
+      - REDIS_HOST=redis
+    depends_on:
+      - postgres
+      - redis
+    restart: unless-stopped
+
+  product-service:
+    build:
+      context: ./backend/product-service
+      dockerfile: Dockerfile
+    ports:
+      - "8082:8082"
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
+      - DB_HOST=postgres
+      - REDIS_HOST=redis
+      - ES_HOST=elasticsearch
+    depends_on:
+      - postgres
+      - redis
+      - elasticsearch
+    restart: unless-stopped
+
+  order-service:
+    build:
+      context: ./backend/order-service
+      dockerfile: Dockerfile
+    ports:
+      - "8083:8083"
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
+      - DB_HOST=postgres
+      - REDIS_HOST=redis
+      - ROCKETMQ_HOST=rocketmq
+    depends_on:
+      - postgres
+      - redis
+    restart: unless-stopped
+
+  payment-service:
+    build:
+      context: ./backend/payment-service
+      dockerfile: Dockerfile
+    ports:
+      - "8084:8084"
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
+      - DB_HOST=postgres
+    depends_on:
+      - postgres
+    restart: unless-stopped
+
+  ai-service:
+    build:
+      context: ./ai-core
+      dockerfile: Dockerfile
+    ports:
+      - "8000:8000"
+    environment:
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+      - MILVUS_HOST=milvus
+      - REDIS_HOST=redis
+      - DB_HOST=postgres
+    depends_on:
+      - milvus
+      - redis
+      - postgres
+    restart: unless-stopped
+
+  recommend-service:
+    build:
+      context: ./backend/recommend-service
+      dockerfile: Dockerfile
+    ports:
+      - "8085:8085"
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
+      - ES_HOST=elasticsearch
+      - REDIS_HOST=redis
+    depends_on:
+      - elasticsearch
+      - redis
+    restart: unless-stopped
+
+  notification-service:
+    build:
+      context: ./backend/notification-service
+      dockerfile: Dockerfile
+    ports:
+      - "8086:8086"
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
+      - REDIS_HOST=redis
+      - ROCKETMQ_HOST=rocketmq
+    depends_on:
+      - redis
+    restart: unless-stopped
+
+  # ==================== 注册中心 ====================
+  eureka:
+    build:
+      context: ./backend/eureka-server
+      dockerfile: Dockerfile
+    ports:
+      - "8761:8761"
+    restart: unless-stopped
+
+  # ==================== 数据层 ====================
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      - POSTGRES_DB=travel_ai
+      - POSTGRES_USER=travel
+      - POSTGRES_PASSWORD=travel123
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./database/migrations:/docker-entrypoint-initdb.d
+    restart: unless-stopped
+
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    command: redis-server --appendonly yes
+    restart: unless-stopped
+
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:8.12.0
+    environment:
+      - discovery.type=single-node
+      - xpack.security.enabled=false
+      - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+    ports:
+      - "9200:9200"
+    volumes:
+      - es_data:/usr/share/elasticsearch/data
+    restart: unless-stopped
+
+  milvus:
+    image: milvusdb/milvus:v2.3.4
+    environment:
+      - ETCD_USE_EMBED=true
+      - COMMON_STORAGETYPE=local
+    ports:
+      - "19530:19530"
+      - "9091:9091"
+    volumes:
+      - milvus_data:/var/lib/milvus
+    restart: unless-stopped
+
+  rocketmq:
+    image: apache/rocketmq:5.1.3
+    ports:
+      - "9876:9876"
+      - "10909:10909"
+      - "10911:10911"
+    volumes:
+      - rmq_data:/home/rocketmq/store
+    restart: unless-stopped
+
+  # ==================== 监控 ====================
+  prometheus:
+    image: prom/prometheus:v2.48.0
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./deploy/monitoring/prometheus.yml:/etc/prometheus/prometheus.yml
+    restart: unless-stopped
+
+  grafana:
+    image: grafana/grafana:10.2.0
+    ports:
+      - "3100:3000"
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=admin123
+    volumes:
+      - grafana_data:/var/lib/grafana
+      - ./deploy/monitoring/grafana/provisioning:/etc/grafana/provisioning
+    depends_on:
+      - prometheus
+    restart: unless-stopped
+
+volumes:
+  postgres_data:
+  redis_data:
+  es_data:
+  milvus_data:
+  rmq_data:
+  grafana_data:
